@@ -26,10 +26,11 @@ jobs:
       - name: 📦 Instalar dependencias
         run: npm install
 
-      - name: 📱 Inicializar Capacitor y plataforma Android
+      - name: 📱 Inicializar Capacitor y sincronizar Android
         run: |
           npx cap init "Calc-X Pro" "com.calcx.pro" --web-dir www
           npx cap add android
+          npx cap sync android
 
       - name: ⚙️ Compilar APK de Android (Debug)
         run: |

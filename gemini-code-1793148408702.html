@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Científica Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        glass: {
+                            light: 'rgba(255, 255, 255, 0.65)',
+                            dark: 'rgba(18, 24, 38, 0.75)',
+                            borderLight: 'rgba(255, 255, 255, 0.4)',
+                            borderDark: 'rgba(255, 255, 255, 0.08)',
+                            btnLight: 'rgba(255, 255, 255, 0.5)',
+                            btnDark: 'rgba(255, 255, 255, 0.05)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.5); }
+        .glass-card { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+        .btn-press { transition: all 0.1s ease; }
+        .btn-press:active { transform: scale(0.94); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-slate-900 to-purple-950 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 text-slate-800 dark:text-slate-100 min-h-screen flex items-center justify-center p-3 sm:p-6 transition-colors duration-300">
+
+    <!-- Ambient background glows -->
+    <div class="fixed top-1/4 left-1/4 w-72 h-72 sm:w-96 sm:h-96 bg-indigo-500/20 rounded-full filter blur-3xl pointer-events-none animate-pulse"></div>
+    <div class="fixed bottom-1/4 right-1/4 w-72 h-72 sm:w-96 sm:h-96 bg-purple-500/20 rounded-full filter blur-3xl pointer-events-none animate-pulse" style="animation-delay: 1s;"></div>
+
+    <!-- Main Container -->
+    <div class="relative w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-start z-10">
+
+        <!-- Calculator Unit -->
+        <div class="lg:col-span-8 bg-glass-light dark:bg-glass-dark border border-glass-borderLight dark:border-glass-borderDark rounded-3xl p-5 sm:p-7 shadow-2xl glass-card transition-all duration-300">
+            
+            <!-- Header Bar -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                    <span class="text-xs font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase ml-2">Calc-X Pro</span>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <!-- Angle Mode Indicator / Toggle -->
+                    <button id="toggleAngleBtn" title="Cambiar Grados/Radianes" class="px-2 py-1 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-xs font-bold text-indigo-600 dark:text-indigo-300 transition">
+                        DEG
+                    </button>
+                    <!-- Toggle Scientific Mode -->
+                    <button id="toggleSciBtn" title="Modo Científico" class="p-2 rounded-xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/50 dark:hover:bg-slate-800/50 border border-slate-200/30 dark:border-slate-700/30 transition text-slate-600 dark:text-slate-300">
+                        <i data-lucide="flask-conical" class="w-4 h-4"></i>
+                    </button>
+                    <!-- Toggle Theme -->
+                    <button id="toggleThemeBtn" title="Cambiar Tema" class="p-2 rounded-xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/50 dark:hover:bg-slate-800/50 border border-slate-200/30 dark:border-slate-700/30 transition text-slate-600 dark:text-slate-300">
+                        <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+                        <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+                    </button>
+                    <!-- Toggle History Panel (Mobile) -->
+                    <button id="toggleHistoryMobileBtn" title="Historial" class="lg:hidden p-2 rounded-xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/50 dark:hover:bg-slate-800/50 border border-slate-200/30 dark:border-slate-700/30 transition text-slate-600 dark:text-slate-300">
+                        <i data-lucide="history" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Display Area -->
+            <div id="displayArea" class="bg-slate-900/10 dark:bg-black/30 rounded-2xl p-4 sm:p-5 mb-5 border border-slate-200/20 dark:border-slate-800/50 text-right font-mono flex flex-col justify-end min-h-[110px] overflow-hidden shadow-inner cursor-pointer" title="Haz clic para copiar resultado">
+                <div id="expressionDisplay" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 min-h-[1.25rem] overflow-x-auto whitespace-nowrap scrollbar-none mb-1"></div>
+                <div id="mainDisplay" class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-800 dark:text-slate-50 overflow-x-auto whitespace-nowrap scrollbar-none">
+                    0
+                </div>
+            </div>
+
+            <!-- Toast Message -->
+            <div id="toast" class="opacity-0 transition-opacity duration-300 text-xs text-center py-1 px-3 mb-2 bg-indigo-500/20 text-indigo-300 rounded-lg max-w-xs mx-auto pointer-events-none">
+                Copiado al portapapeles
+            </div>
+
+            <!-- Keypad Matrix -->
+            <div class="grid grid-cols-4 gap-2.5 sm:gap-3">
+
+                <!-- Scientific Panel -->
+                <div id="scientificPanel" class="col-span-4 grid grid-cols-4 sm:grid-cols-5 gap-2.5 sm:gap-3 hidden mb-1">
+                    <button data-action="sin" class="btn-sci p-3 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 btn-press">sin</button>
+                    <button data-action="cos" class="btn-sci p-3 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 btn-press">cos</button>
+                    <button data-action="tan" class="btn-sci p-3 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 btn-press">tan</button>
+                    <button data-action="log" class="btn-sci p-3 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 btn-press">log</button>
+                    <button data-action="pi" class="btn-sci hidden sm:block p-3 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 btn-press">π</button>
+                    <button data-action="power" class="btn-sci p-3 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 btn-press">x²</button>
+                    <button data-action="factorial" class="btn-sci p-3 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 btn-press">n!</button>
+                    <button data-action="inverse" class="btn-sci p-3 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 btn-press">1/x</button>
+                </div>
+
+                <!-- Row 1 -->
+                <button data-action="clear-all" class="p-3.5 sm:p-4 text-sm font-bold rounded-2xl bg-red-500/15 hover:bg-red-500/25 text-red-600 dark:text-red-400 border border-red-500/20 btn-press">AC</button>
+                <button data-action="clear-entry" class="p-3.5 sm:p-4 text-sm font-bold rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/20 btn-press">CE</button>
+                <button data-action="backspace" class="p-3.5 sm:p-4 text-sm font-bold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/60 dark:hover:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700/40 text-slate-700 dark:text-slate-200 flex items-center justify-center btn-press">
+                    <i data-lucide="backspace" class="w-5 h-5"></i>
+                </button>
+                <button data-action="operator" data-val="/" class="p-3.5 sm:p-4 text-base font-bold rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 btn-press">÷</button>
+
+                <!-- Row 2 -->
+                <button data-action="sqrt" class="p-3.5 sm:p-4 text-sm font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/60 dark:hover:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700/40 text-slate-700 dark:text-slate-200 btn-press">√</button>
+                <button data-action="power" class="p-3.5 sm:p-4 text-sm font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/60 dark:hover:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700/40 text-slate-700 dark:text-slate-200 btn-press">x²</button>
+                <button data-action="percent" class="p-3.5 sm:p-4 text-sm font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/60 dark:hover:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700/40 text-slate-700 dark:text-slate-200 btn-press">%</button>
+                <button data-action="operator" data-val="*" class="p-3.5 sm:p-4 text-base font-bold rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 btn-press">×</button>
+
+                <!-- Row 3 -->
+                <button data-action="num" data-val="7" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">7</button>
+                <button data-action="num" data-val="8" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">8</button>
+                <button data-action="num" data-val="9" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">9</button>
+                <button data-action="operator" data-val="-" class="p-3.5 sm:p-4 text-base font-bold rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 btn-press">−</button>
+
+                <!-- Row 4 -->
+                <button data-action="num" data-val="4" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">4</button>
+                <button data-action="num" data-val="5" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">5</button>
+                <button data-action="num" data-val="6" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">6</button>
+                <button data-action="operator" data-val="+" class="p-3.5 sm:p-4 text-base font-bold rounded-2xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 btn-press">+</button>
+
+                <!-- Row 5 -->
+                <button data-action="num" data-val="1" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">1</button>
+                <button data-action="num" data-val="2" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">2</button>
+                <button data-action="num" data-val="3" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">3</button>
+                
+                <!-- Equals Button -->
+                <button data-action="calculate" class="row-span-2 p-3.5 sm:p-4 text-xl font-bold rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40 flex items-center justify-center btn-press">=</button>
+
+                <!-- Row 6 -->
+                <button data-action="negate" class="p-3.5 sm:p-4 text-sm font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/60 dark:hover:bg-slate-800/60 border border-slate-200/40 dark:border-slate-700/40 text-slate-700 dark:text-slate-200 btn-press">+/−</button>
+                <button data-action="num" data-val="0" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">0</button>
+                <button data-action="decimal" class="p-3.5 sm:p-4 text-lg font-semibold rounded-2xl bg-glass-btnLight dark:bg-glass-btnDark hover:bg-slate-200/70 dark:hover:bg-slate-800/70 border border-slate-200/30 dark:border-slate-700/30 text-slate-800 dark:text-slate-100 btn-press">.</button>
+            </div>
+        </div>
+
+        <!-- History Panel -->
+        <div id="historyPanel" class="lg:col-span-4 bg-glass-light dark:bg-glass-dark border border-glass-borderLight dark:border-glass-borderDark rounded-3xl p-5 shadow-2xl glass-card transition-all duration-300 hidden lg:block h-full max-h-[580px] flex flex-col">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-200/30 dark:border-slate-700/30 mb-3">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="history" class="w-4 h-4 text-indigo-500"></i>
+                    <h3 class="font-semibold text-sm tracking-wide text-slate-700 dark:text-slate-200">Historial</h3>
+                </div>
+                <button id="clearHistoryBtn" class="text-xs text-red-500 hover:text-red-400 font-medium transition flex items-center gap-1">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    Borrar
+                </button>
+            </div>
+
+            <!-- History Items Container -->
+            <div id="historyList" class="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-sm">
+                <div id="emptyHistoryMsg" class="text-center text-slate-400 dark:text-slate-500 py-10 text-xs font-sans">
+                    No hay cálculos recientes.
+                </div>
+            </div>
+            
+            <div class="mt-3 pt-2 border-t border-slate-200/30 dark:border-slate-700/30 text-center">
+                <span class="text-[11px] text-slate-400 dark:text-slate-500">Haz clic en un registro para reutilizarlo</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let currentInput = '0';
+        let previousInput = '';
+        let operation = null;
+        let shouldResetDisplay = false;
+        let angleMode = 'DEG'; // DEG or RAD
+        
+        let history = [];
+        try {
+            const savedHistory = localStorage.getItem('calc_history');
+            if (savedHistory) {
+                history = JSON.parse(savedHistory);
+                if (!Array.isArray(history)) history = [];
+            }
+        } catch (e) {
+            history = [];
+        }
+
+        // DOM Elements
+        const mainDisplay = document.getElementById('mainDisplay');
+        const expressionDisplay = document.getElementById('expressionDisplay');
+        const historyList = document.getElementById('historyList');
+        const emptyHistoryMsg = document.getElementById('emptyHistoryMsg');
+        const toast = document.getElementById('toast');
+        const scientificPanel = document.getElementById('scientificPanel');
+        const toggleAngleBtn = document.getElementById('toggleAngleBtn');
+
+        window.onload = function() {
+            lucide.createIcons();
+            renderHistory();
+            setupEventListeners();
+            
+            // Restore theme preference
+            const savedTheme = localStorage.getItem('calc_theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+        };
+
+        function showToast(msg = 'Copiado al portapapeles') {
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 1800);
+        }
+
+        function formatNumber(numStr) {
+            if (numStr === 'Error' || numStr === 'NaN' || numStr === 'Infinity' || numStr === '-Infinity') return numStr;
+            if (!numStr && numStr !== 0) return '0';
+            
+            const num = parseFloat(numStr);
+            if (isNaN(num)) return numStr;
+
+            // Handle scientific notation for very large or small numbers
+            if (Math.abs(num) >= 1e15 || (Math.abs(num) < 1e-7 && num !== 0)) {
+                return num.toExponential(8);
+            }
+
+            const parts = numStr.toString().split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return parts.join('.');
+        }
+
+        function updateDisplay() {
+            mainDisplay.textContent = formatNumber(currentInput);
+            
+            let expr = '';
+            if (previousInput !== '') {
+                expr = `${formatNumber(previousInput)} ${getSymbol(operation)}`;
+            }
+            expressionDisplay.textContent = expr;
+        }
+
+        function getSymbol(op) {
+            switch(op) {
+                case '+': return '+';
+                case '-': return '−';
+                case '*': return '×';
+                case '/': return '÷';
+                default: return '';
+            }
+        }
+
+        function handleNumber(num) {
+            if (currentInput === 'Error') {
+                currentInput = '0';
+            }
+            if (currentInput === '0' || shouldResetDisplay) {
+                currentInput = num;
+                shouldResetDisplay = false;
+            } else {
+                if (currentInput.replace('.', '').replace('-', '').length < 15) {
+                    currentInput += num;
+                }
+            }
+            updateDisplay();
+        }
+
+        function handleDecimal() {
+            if (currentInput === 'Error') {
+                currentInput = '0';
+            }
+            if (shouldResetDisplay) {
+                currentInput = '0.';
+                shouldResetDisplay = false;
+            } else if (!currentInput.includes('.')) {
+                currentInput += '.';
+            }
+            updateDisplay();
+        }
+
+        function handleOperator(op) {
+            if (currentInput === 'Error') return;
+
+            if (operation !== null && !shouldResetDisplay) {
+                calculateResult();
+            }
+            previousInput = currentInput;
+            operation = op;
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function calculateResult() {
+            if (operation === null || shouldResetDisplay || currentInput === 'Error') return;
+
+            const prev = parseFloat(previousInput);
+            const curr = parseFloat(currentInput);
+            let result = 0;
+
+            if (isNaN(prev) || isNaN(curr)) return;
+
+            switch(operation) {
+                case '+': 
+                    result = Math.round((prev + curr) * 1e12) / 1e12; 
+                    break;
+                case '-': 
+                    result = Math.round((prev - curr) * 1e12) / 1e12; 
+                    break;
+                case '*': 
+                    result = Math.round((prev * curr) * 1e12) / 1e12; 
+                    break;
+                case '/':
+                    if (curr === 0) {
+                        currentInput = 'Error';
+                        updateDisplay();
+                        operation = null;
+                        previousInput = '';
+                        shouldResetDisplay = true;
+                        return;
+                    }
+                    result = Math.round((prev / curr) * 1e12) / 1e12;
+                    break;
+            }
+
+            if (!isFinite(result)) {
+                currentInput = 'Error';
+                updateDisplay();
+                operation = null;
+                previousInput = '';
+                shouldResetDisplay = true;
+                return;
+            }
+
+            const historyItem = {
+                expression: `${formatNumber(previousInput.toString())} ${getSymbol(operation)} ${formatNumber(currentInput.toString())}`,
+                result: result.toString()
+            };
+            saveHistory(historyItem);
+
+            currentInput = result.toString();
+            operation = null;
+            previousInput = '';
+            shouldResetDisplay = true;
+            updateDisplay();
+        }
+
+        function handlePercent() {
+            if (currentInput === 'Error') return;
+            let val = parseFloat(currentInput);
+            if (isNaN(val)) return;
+
+            if (previousInput !== '' && operation !== null) {
+                const prev = parseFloat(previousInput);
+                if (operation === '+' || operation === '-') {
+                    val = (prev * val) / 100;
+                } else if (operation === '*' || operation === '/') {
+                    val = val / 100;
+                }
+            } else {
+                val = val / 100;
+            }
+
+            currentInput = val.toString();
+            updateDisplay();
+        }
+
+        function handleSpecial(action) {
+            if (currentInput === 'Error' && action !== 'clear-all') {
+                return;
+            }
+            let val = parseFloat(currentInput);
+
+            switch(action) {
+                case 'clear-all':
+                    currentInput = '0';
+                    previousInput = '';
+                    operation = null;
+                    shouldResetDisplay = false;
+                    break;
+                case 'clear-entry':
+                    currentInput = '0';
+                    shouldResetDisplay = false;
+                    break;
+                case 'backspace':
+                    if (shouldResetDisplay) break;
+                    if (currentInput.length > 1 && !(currentInput.length === 2 && currentInput.startsWith('-'))) {
+                        currentInput = currentInput.slice(0, -1);
+                    } else {
+                        currentInput = '0';
+                    }
+                    break;
+                case 'negate':
+                    if (currentInput !== '0') {
+                        currentInput = currentInput.startsWith('-') ? currentInput.slice(1) : '-' + currentInput;
+                    }
+                    break;
+                case 'percent':
+                    handlePercent();
+                    break;
+                case 'sqrt':
+                    if (val < 0) {
+                        currentInput = 'Error';
+                    } else {
+                        const res = Math.round(Math.sqrt(val) * 1e12) / 1e12;
+                        saveHistory({ expression: `√(${formatNumber(currentInput)})`, result: res.toString() });
+                        currentInput = res.toString();
+                    }
+                    shouldResetDisplay = true;
+                    break;
+                case 'power':
+                    const pRes = Math.round(Math.pow(val, 2) * 1e12) / 1e12;
+                    saveHistory({ expression: `(${formatNumber(currentInput)})²`, result: pRes.toString() });
+                    currentInput = pRes.toString();
+                    shouldResetDisplay = true;
+                    break;
+                case 'sin':
+                case 'cos':
+                case 'tan':
+                    let angle = val;
+                    if (angleMode === 'DEG') {
+                        angle = angle * (Math.PI / 180);
+                    }
+                    let tRes = 0;
+                    if (action === 'sin') tRes = Math.sin(angle);
+                    else if (action === 'cos') tRes = Math.cos(angle);
+                    else if (action === 'tan') {
+                        if (angleMode === 'DEG' && (val % 180 === 90)) {
+                            currentInput = 'Error';
+                            updateDisplay();
+                            shouldResetDisplay = true;
+                            return;
+                        }
+                        tRes = Math.tan(angle);
+                    }
+
+                    // Clean up precision artifacts near zero
+                    if (Math.abs(tRes) < 1e-12) tRes = 0;
+                    tRes = Math.round(tRes * 1e12) / 1e12;
+
+                    saveHistory({ expression: `${action}(${formatNumber(currentInput)}${angleMode === 'DEG' ? '°' : ''})`, result: tRes.toString() });
+                    currentInput = tRes.toString();
+                    shouldResetDisplay = true;
+                    break;
+                case 'log':
+                    if (val <= 0) {
+                        currentInput = 'Error';
+                    } else {
+                        const lRes = Math.round(Math.log10(val) * 1e12) / 1e12;
+                        saveHistory({ expression: `log(${formatNumber(currentInput)})`, result: lRes.toString() });
+                        currentInput = lRes.toString();
+                    }
+                    shouldResetDisplay = true;
+                    break;
+                case 'pi':
+                    currentInput = Math.PI.toString();
+                    shouldResetDisplay = true;
+                    break;
+                case 'factorial':
+                    if (val < 0 || !Number.isInteger(val) || val > 170) {
+                        currentInput = 'Error';
+                    } else {
+                        let f = 1;
+                        for (let i = 2; i <= val; i++) f *= i;
+                        saveHistory({ expression: `${val}!`, result: f.toString() });
+                        currentInput = f.toString();
+                    }
+                    shouldResetDisplay = true;
+                    break;
+                case 'inverse':
+                    if (val === 0) {
+                        currentInput = 'Error';
+                    } else {
+                        let inv = Math.round((1 / val) * 1e12) / 1e12;
+                        saveHistory({ expression: `1/(${formatNumber(currentInput)})`, result: inv.toString() });
+                        currentInput = inv.toString();
+                    }
+                    shouldResetDisplay = true;
+                    break;
+            }
+            updateDisplay();
+        }
+
+        function saveHistory(item) {
+            try {
+                history.unshift(item);
+                if (history.length > 20) history.pop();
+                localStorage.setItem('calc_history', JSON.stringify(history));
+                renderHistory();
+            } catch (e) {
+                // Storage quota exceeded or disabled
+            }
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = '';
+            if (!history || history.length === 0) {
+                emptyHistoryMsg.classList.remove('hidden');
+                historyList.appendChild(emptyHistoryMsg);
+                return;
+            }
+            emptyHistoryMsg.classList.add('hidden');
+
+            history.forEach((item) => {
+                const el = document.createElement('div');
+                el.className = 'p-2.5 rounded-xl bg-slate-200/40 dark:bg-slate-800/40 hover:bg-indigo-500/10 dark:hover:bg-indigo-500/20 border border-slate-200/30 dark:border-slate-700/30 cursor-pointer transition flex flex-col items-end group';
+                
+                const exprSpan = document.createElement('span');
+                exprSpan.className = 'text-xs text-slate-500 dark:text-slate-400 group-hover:text-indigo-400';
+                exprSpan.textContent = `${item.expression} =`;
+
+                const resSpan = document.createElement('span');
+                resSpan.className = 'font-bold text-slate-800 dark:text-slate-100';
+                resSpan.textContent = formatNumber(item.result);
+
+                el.appendChild(exprSpan);
+                el.appendChild(resSpan);
+
+                el.onclick = () => {
+                    currentInput = item.result;
+                    shouldResetDisplay = true;
+                    updateDisplay();
+                    showToast('Valor cargado de historial');
+                };
+                historyList.appendChild(el);
+            });
+        }
+
+        function clearHistory() {
+            history = [];
+            try {
+                localStorage.removeItem('calc_history');
+            } catch (e) {}
+            renderHistory();
+            showToast('Historial borrado');
+        }
+
+        function setupEventListeners() {
+            document.querySelectorAll('button[data-action]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    const val = btn.dataset.val;
+
+                    if (action === 'num') handleNumber(val);
+                    else if (action === 'decimal') handleDecimal();
+                    else if (action === 'operator') handleOperator(val);
+                    else if (action === 'calculate') calculateResult();
+                    else handleSpecial(action);
+                });
+            });
+
+            document.getElementById('toggleThemeBtn').addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+                const isDark = document.documentElement.classList.contains('dark');
+                try {
+                    localStorage.setItem('calc_theme', isDark ? 'dark' : 'light');
+                } catch (e) {}
+            });
+
+            document.getElementById('toggleSciBtn').addEventListener('click', () => {
+                scientificPanel.classList.toggle('hidden');
+            });
+
+            toggleAngleBtn.addEventListener('click', () => {
+                angleMode = angleMode === 'DEG' ? 'RAD' : 'DEG';
+                toggleAngleBtn.textContent = angleMode;
+                showToast(`Modo: ${angleMode}`);
+            });
+
+            document.getElementById('toggleHistoryMobileBtn').addEventListener('click', () => {
+                const historyPanel = document.getElementById('historyPanel');
+                historyPanel.classList.toggle('hidden');
+            });
+
+            document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+
+            document.getElementById('displayArea').addEventListener('click', () => {
+                if (currentInput !== 'Error') {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(currentInput).then(() => {
+                            showToast('Copiado al portapapeles');
+                        }).catch(() => {
+                            showToast('Error al copiar');
+                        });
+                    } else {
+                        showToast('Portapapeles no soportado');
+                    }
+                }
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key >= '0' && e.key <= '9') {
+                    e.preventDefault();
+                    handleNumber(e.key);
+                }
+                if (e.key === '.' || e.key === ',') {
+                    e.preventDefault();
+                    handleDecimal();
+                }
+                if (['+', '-', '*', '/'].includes(e.key)) {
+                    e.preventDefault();
+                    let op = e.key;
+                    handleOperator(op);
+                }
+                if (e.key === 'Enter' || e.key === '=') {
+                    e.preventDefault();
+                    calculateResult();
+                }
+                if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    handleSpecial('backspace');
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    handleSpecial('clear-all');
+                }
+                if (e.key === '%') {
+                    e.preventDefault();
+                    handleSpecial('percent');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
